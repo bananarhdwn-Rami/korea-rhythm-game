@@ -151,6 +151,10 @@ function startGame() {
 
   updateHearts();
 
+  If (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+  
   try {
     recognition && recognition.start();
   } catch (e) {
