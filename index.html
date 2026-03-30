@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>전통 간식 리듬게임</title>
+<style>
+  body {
+    text-align: center;
+    background: black;
+    color: white;
+    font-family: sans-serif;
+  }
+  #word {
+    font-size: 70px;
+    margin-top: 120px;
+  }
+  #hearts {
+    font-size: 30px;
+  }
+  #ranking {
+    margin-top: 30px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎤 전통 간식 리듬게임</h1>
+
+<input id="name" placeholder="이름 입력" />
+<button onclick="startGame()">시작</button>
+
+<p id="level">레벨: 1</p>
+<p id="hearts">❤️❤️❤️❤️❤️</p>
+
+<div id="word">준비</div>
+<p id="status">🎙 대기중</p>
+
+<h2>🏆 랭킹</h2>
+<div id="ranking"></div>
+
+<script>
+let level = 1;
+let speed = 1200;
+let hearts = 5;
+let count = 0;
+let currentWord = "";
+let interval;
+let playerName = "";
+
+const wordDiv = document.getElementById("word");
+const levelText = document.getElementById("level");
+const heartText = document.getElementById("hearts");
+const statusText = document.getElementById
