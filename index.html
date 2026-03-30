@@ -27,7 +27,7 @@
 <h1>🎤 전통 간식 리듬게임</h1>
 
 <input id="name" placeholder="이름 입력" />
-<button onclick="startGame()">시작</button>
+<button id="startBtn">시작</button>
 
 <p id="level">레벨: 1</p>
 <p id="hearts">❤️❤️❤️❤️❤️</p>
@@ -50,4 +50,151 @@ let playerName = "";
 const wordDiv = document.getElementById("word");
 const levelText = document.getElementById("level");
 const heartText = document.getElementById("hearts");
-const statusText = document.getElementById
+const statusText = document.getElementById("status");
+const rankingDiv = document.getElementById("ranking");
+
+// 단어
+const levelWords = {
+  1: ["떡"],
+  2: ["떡", "약과"],
+  3: ["떡", "타래", "한과", "약과", "엿", "다식"]
+};
+
+// 🎤 음성 인식
+let recognition;
+try {
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "ko-KR";
+  recognition.continuous = true;
+
+  recognition.onresult = (event) => {
+    const spoken = event.results[event.results.length - 1][0].transcript.trim();
+    statusText.innerText = "🗣 " + spoken;
+
+    if (spoken.includes(currentWord)) {
+      statusText.innerText = "✅ 정답!";
+    } else {
+      hearts--;
+      updateHearts();
+      statusText.innerText = "❌ 틀림!";
+    }
+
+    if (hearts <= 0) endGame();
+  };
+} catch (e) {
+  console.log("음성 인식 지원 안됨");
+}
+
+// 하트
+function updateHearts() {
+  heartText.innerText = "❤️".repeat(hearts);
+}
+
+// 비트
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playBeat() {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.frequency.value = 120;
+  gain.gain.value = 0.5;
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.1);
+}
+
+// 단어 생성
+function spawnWord() {
+  const words = levelWords[level];
+  currentWord = words[Math.floor(Math.random() * words.length)];
+  wordDiv.innerText = currentWord;
+
+  playBeat();
+
+  count++;
+
+  if (count === 8) {
+    level++;
+    levelText.innerText = "레벨: " + level;
+    count = 0;
+    speed *= 0.75;
+
+    clearInterval(interval);
+    setTimeout(gameLoop, 500);
+  }
+
+  if (level > 3) endGame();
+}
+
+// 루프
+function gameLoop() {
+  interval = setInterval(spawnWord, speed);
+}
+
+// 🎯 시작 (수정 완료)
+function startGame() {
+  console.log("게임 시작 클릭됨");
+
+  playerName = document.getElementById("name").value;
+  if (!playerName) {
+    alert("이름을 입력하세요!");
+    return;
+  }
+
+  level = 1;
+  hearts = 5;
+  speed = 1200;
+  count = 0;
+
+  updateHearts();
+
+  try {
+    recognition && recognition.start();
+  } catch (e) {
+    console.log("음성 인식 에러:", e);
+  }
+
+  gameLoop();
+}
+
+// 종료
+function endGame() {
+  clearInterval(interval);
+  recognition && recognition.stop();
+
+  saveScore(playerName, hearts);
+  displayRanking();
+
+  wordDiv.innerText = "🏁 결과: ❤️ " + hearts;
+}
+
+// 랭킹
+function saveScore(name, score) {
+  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+
+  ranking.push({ name, score });
+  ranking.sort((a, b) => b.score - a.score);
+  ranking = ranking.slice(0, 5);
+
+  localStorage.setItem("ranking", JSON.stringify(ranking));
+}
+
+function displayRanking() {
+  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+
+  rankingDiv.innerHTML = ranking
+    .map((r, i) => <p>${i + 1}위 - ${r.name} ❤️${r.score}</p>)
+    .join("");
+}
+
+displayRanking();
+
+// 🔥 버튼 연결 (핵심)
+document.getElementById("startBtn").addEventListener("click", startGame);
+</script>
+
+</body>
+</html>
